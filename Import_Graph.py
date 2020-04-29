@@ -28,13 +28,31 @@ class Import_Graph:
 
     # main function
     def import_graph(self):
-        circles = self.find_circles()
-        self.crop_nodes(circles)
-        self.read_text()
+        # nodes
+        nodes = self.find_nodes()
+        nodes_path_coord_dict = self.crop_nodes(nodes)
+        G, nodes_coord_name_dict = self.read_text()
+
+        # edges
+        edges = self.find_edges()
+        # nodes_text_coords_dict = self.name_nodes(nodes, G)
+        # E = self.connect_nodes(nodes_text_coords_dict, edges)
+
+        # node dictionaries
+        print("nodes path coord dict")
+        for key in nodes_path_coord_dict:
+            print(key, nodes_path_coord_dict[key])
+
+        print("\nnodes coord name dict")
+        for key in nodes_coord_name_dict:
+            print(key, nodes_coord_name_dict[key])
 
     # https://www.geeksforgeeks.org/text-detection-and-extraction-using-opencv-and-ocr/
     # read node name inside all nodes
     def read_text(self):
+
+        nodes_text_dict = {}
+        print(glob.glob(self.node_paths + '*.png'))
 
         for node in glob.glob(self.node_paths + '*.png'):
             img = cv2.imread(node, 0)
@@ -43,6 +61,8 @@ class Import_Graph:
             node_path = node.split('/')[-1]
             node_path = node_path.split('.')[0]
             text_file = self.node_names + node_path + '.txt'
+
+            print("\nnode path: ", node_path)
 
             # Performing OTSU threshold
             ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
@@ -65,6 +85,8 @@ class Import_Graph:
             file = open(text_file, "w+")
             file.write("")
             file.close()
+
+            G = []
 
             # Looping through the identified contours
             # Then rectangular part is cropped and passed on to pytesseract for extracting text from it
@@ -90,7 +112,15 @@ class Import_Graph:
                     text = re.sub("[^0-9^.]", "", text)
                 else:
                     text = re.sub("[^0-9A-Za-z^.]", "", text)
-                print("text: ", text)
+
+                if preview:
+                    print("text: ", text)
+
+                G.append(text)
+
+                print("key: ", node_path)
+                print("value: ", text)
+                nodes_text_dict[node_path] = text
 
                 # Appending the text into file
                 file.write(text)
@@ -98,10 +128,11 @@ class Import_Graph:
 
                 # Close the file
                 file.close
+                return G, nodes_text_dict
 
     # https://www.pyimagesearch.com/2014/07/21/detecting-circles-images-using-opencv-hough-circles/
     # find nodes in graph
-    def find_circles(self):
+    def find_nodes(self):
 
         gray = self.gray
         output = gray.copy()
@@ -142,6 +173,8 @@ class Import_Graph:
 
     # crop nodes from graph
     def crop_nodes(self, circles):
+        nodes_paths_dict = {}
+
         for (x, y, r) in circles:
 
             # bottom left
@@ -155,11 +188,20 @@ class Import_Graph:
             img = cv2.imread(self.image_path)
             crop_img = img[y0:y1, x0:x1]
 
+            node_output_path = "outputs/nodes/{0}_{1}_{2}.png".format(x, y, r)
+
+            # view node cropped
             if (preview):
-                cv2.imshow("outputs/nodes/{0}_{1}_{2}.png".format(x, y, r), crop_img)
+                cv2.imshow(node_output_path, crop_img)
                 cv2.waitKey(0)
 
-            cv2.imwrite("outputs/nodes/{0}_{1}_{2}.png".format(x, y, r), crop_img)
+            # save image
+            cv2.imwrite(node_output_path, crop_img)
+
+            # associate image of node (path name) and coordinates
+            nodes_paths_dict[node_output_path] = (x, y, r)
+
+        return nodes_paths_dict
 
     # RGB to Gray
     def grayify(self, image):
@@ -167,3 +209,43 @@ class Import_Graph:
         if (len(image.shape)==3):
             image = cv2.cvtColor(np.float32(image), cv2.COLOR_BGR2GRAY)
         return image
+
+    # https://www.geeksforgeeks.org/line-detection-python-opencv-houghline-method/
+    # find edges in graph
+    def find_edges(self):
+        img = self.image
+        gray = self.gray
+
+        edges = cv2.Canny(gray, 75, 150)
+        lines = cv2.HoughLinesP(edges, 1, np.pi/180, 30, maxLineGap=25)
+
+        # TO-DO: adjustable MaxLineGap
+
+        edges_arr = []
+
+        # https://www.tutorialspoint.com/line-detection-in-python-with-opencv
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            cv2.line(img, (x1, y1), (x2, y2), (0, 0, 128), 1)
+
+            if preview:
+                # cv2.imshow("linesEdges", edges)
+                cv2.imshow("linesDetected", img)
+                cv2.waitKey(0)
+
+            edges_arr.append([(x1, y1), (x2, y2)])
+
+        # print(edges_arr)
+        return edges_arr
+
+    def name_nodes(self, nodes, G):
+        pass
+
+    def connect_nodes(self, nodes_dict, edges):
+        E = []
+        for edge in edges:
+            # endpoint nodes
+            e  = []
+            for end_point in edge:
+                # e.append(node_name)
+                pass
