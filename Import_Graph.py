@@ -30,29 +30,43 @@ class Import_Graph:
     def import_graph(self):
         # nodes
         nodes = self.find_nodes()
+
+        # dictionary from node path name to node coordinates
         nodes_path_coord_dict = self.crop_nodes(nodes)
+
+        # self.crop_nodes(nodes)
+
+        # dictionary from node path name to node label
         G, nodes_coord_name_dict = self.read_text()
 
-        # edges
+        # edges coordinates
         edges = self.find_edges()
-        # nodes_text_coords_dict = self.name_nodes(nodes, G)
-        # E = self.connect_nodes(nodes_text_coords_dict, edges)
+
+        E = self.connect_nodes(nodes_path_coord_dict, nodes_coord_name_dict, edges)
 
         # node dictionaries
-        print("nodes path coord dict")
-        for key in nodes_path_coord_dict:
-            print(key, nodes_path_coord_dict[key])
+        if preview:
+            print("\nnodes path coord dict")
+            for key in nodes_path_coord_dict:
+                print(key, nodes_path_coord_dict[key])
 
-        print("\nnodes coord name dict")
-        for key in nodes_coord_name_dict:
-            print(key, nodes_coord_name_dict[key])
+            print("\nnodes coord name dict")
+            for key in nodes_coord_name_dict:
+                print(key, nodes_coord_name_dict[key])
+
+        print("\nG")
+        for g in G:
+            print(g)
+
+        print("\nE")
+        for e in E:
+            print(e)
 
     # https://www.geeksforgeeks.org/text-detection-and-extraction-using-opencv-and-ocr/
     # read node name inside all nodes
     def read_text(self):
 
         nodes_text_dict = {}
-        print(glob.glob(self.node_paths + '*.png'))
 
         for node in glob.glob(self.node_paths + '*.png'):
             img = cv2.imread(node, 0)
@@ -61,8 +75,6 @@ class Import_Graph:
             node_path = node.split('/')[-1]
             node_path = node_path.split('.')[0]
             text_file = self.node_names + node_path + '.txt'
-
-            print("\nnode path: ", node_path)
 
             # Performing OTSU threshold
             ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
@@ -117,9 +129,6 @@ class Import_Graph:
                     print("text: ", text)
 
                 G.append(text)
-
-                print("key: ", node_path)
-                print("value: ", text)
                 nodes_text_dict[node_path] = text
 
                 # Appending the text into file
@@ -128,7 +137,7 @@ class Import_Graph:
 
                 # Close the file
                 file.close
-                return G, nodes_text_dict
+        return G, nodes_text_dict
 
     # https://www.pyimagesearch.com/2014/07/21/detecting-circles-images-using-opencv-hough-circles/
     # find nodes in graph
@@ -188,7 +197,8 @@ class Import_Graph:
             img = cv2.imread(self.image_path)
             crop_img = img[y0:y1, x0:x1]
 
-            node_output_path = "outputs/nodes/{0}_{1}_{2}.png".format(x, y, r)
+            node_name = "{0}_{1}_{2}".format(x, y, r)
+            node_output_path = "outputs/nodes/{0}.png".format(node_name)
 
             # view node cropped
             if (preview):
@@ -199,7 +209,7 @@ class Import_Graph:
             cv2.imwrite(node_output_path, crop_img)
 
             # associate image of node (path name) and coordinates
-            nodes_paths_dict[node_output_path] = (x, y, r)
+            nodes_paths_dict[node_name] = (x, y, r)
 
         return nodes_paths_dict
 
@@ -238,14 +248,53 @@ class Import_Graph:
         # print(edges_arr)
         return edges_arr
 
-    def name_nodes(self, nodes, G):
-        pass
+    def connect_nodes(self, name_coord, name_label, edges):
+        if preview:
+            print("\nname_coord dict")
+            for key in name_coord:
+                print(key, name_coord[key])
 
-    def connect_nodes(self, nodes_dict, edges):
+            print("\nname_label dict")
+            for key in name_label:
+                print(key, name_label[key])
+
+            print("\nedges")
+            for edge in edges:
+                print(edge)
+
+        print("\nname_label dict")
+        for key in name_label:
+            print(key, name_label[key])
+
         E = []
+        threshold = 10
         for edge in edges:
             # endpoint nodes
             e  = []
-            for end_point in edge:
-                # e.append(node_name)
-                pass
+            for (x_coord, y_coord) in edge:
+
+                for key in name_coord:
+                    x, y, r = name_coord[key]
+                    x_range = range(x - r - threshold, x + r + threshold)
+                    y_range = range(y - r - threshold, y + r + threshold)
+                    if ((x_coord in x_range) and (y_coord in y_range)):
+                        e.append(key)
+
+                    if preview: # else:
+                        if ((x_coord in x_range) or (y_coord in y_range)):
+                            print("{0} in x range: {1} - {2} (difference of {3})".format(x_coord,
+                                                                                         x - r,
+                                                                                         x + r,
+                                                                                         x_coord - (x + r) if (x_coord > x + r) else (x - r) - x_coord))
+                            print("{0} in y range: {1} - {2} (difference of {3})".format(y_coord,
+                                                                                         y - r,
+                                                                                         y + r,
+                                                                                         y_coord - (y + r) if (y_coord > y + r) else (y - r) - y_coord))
+                            print("{0}, {1}".format( "T" if (x_coord in x_range) else "F",  "T" if (y_coord in y_range) else "F"))
+                            print('\n')
+
+            # add edges with two endpoins in nodes to E
+            if (len(e) == 2):
+                print(name_label.get(e))
+                E.append(name_label.get(e))
+        return E
