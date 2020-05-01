@@ -5,7 +5,8 @@ import cv2
 import pytesseract
 import glob
 import re
-from Graph import Graph
+import networkx as nx
+import matplotlib.pyplot as plt
 
 ### Settings ###
 
@@ -55,14 +56,12 @@ class Import_Graph:
             for key in nodes_coord_name_dict:
                 print(key, nodes_coord_name_dict[key])
 
-        graph = Graph()
-        for g in G:
-            graph.add_vertex(g)
-        for e in E:
-            if (len(set(e)) == 2):
-                graph.add_edge(e)
-        print("nodes: ", graph.vertices())
-        print("edges: ", graph.edges())
+        # create graph
+        graph = nx.Graph(E)
+
+        # plot, save graph
+        nx.draw(graph)
+        plt.savefig("outputs/detected_graph.jpg")
 
     # https://www.geeksforgeeks.org/text-detection-and-extraction-using-opencv-and-ocr/
     # read node name inside all nodes
