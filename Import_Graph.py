@@ -5,6 +5,7 @@ import cv2
 import pytesseract
 import glob
 import re
+from Graph import Graph
 
 ### Settings ###
 
@@ -54,13 +55,14 @@ class Import_Graph:
             for key in nodes_coord_name_dict:
                 print(key, nodes_coord_name_dict[key])
 
-        print("\nG")
+        graph = Graph()
         for g in G:
-            print(g)
-
-        print("\nE")
+            graph.add_vertex(g)
         for e in E:
-            print(e)
+            if (len(set(e)) == 2):
+                graph.add_edge(e)
+        print("nodes: ", graph.vertices())
+        print("edges: ", graph.edges())
 
     # https://www.geeksforgeeks.org/text-detection-and-extraction-using-opencv-and-ocr/
     # read node name inside all nodes
@@ -128,8 +130,7 @@ class Import_Graph:
                 if preview:
                     print("text: ", text)
 
-                G.append(text)
-                nodes_text_dict[node_path] = text
+                nodes_text_dict[node_path] = str(text)
 
                 # Appending the text into file
                 file.write(text)
@@ -137,6 +138,8 @@ class Import_Graph:
 
                 # Close the file
                 file.close
+
+        G = nodes_text_dict.values()
         return G, nodes_text_dict
 
     # https://www.pyimagesearch.com/2014/07/21/detecting-circles-images-using-opencv-hough-circles/
@@ -262,10 +265,6 @@ class Import_Graph:
             for edge in edges:
                 print(edge)
 
-        print("\nname_label dict")
-        for key in name_label:
-            print(key, name_label[key])
-
         E = []
         threshold = 10
         for edge in edges:
@@ -295,6 +294,17 @@ class Import_Graph:
 
             # add edges with two endpoins in nodes to E
             if (len(e) == 2):
-                print(name_label.get(e))
-                E.append(name_label.get(e))
-        return E
+                # print(type(name_label)) # .get(e))
+                E.append(e)
+
+        E_names = []
+        for edge in E:
+            left_node = edge[0]
+            right_node = edge[1]
+
+            left_node = str(name_label[left_node])
+            right_node = str(name_label[right_node])
+
+            E_names.append([left_node, right_node])
+
+        return E_names
