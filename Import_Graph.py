@@ -22,7 +22,7 @@ class Import_Graph:
         self.image_path = image_path
         self.text = "outputs/text"
         self.node_paths = 'outputs/nodes/'
-        self.node_names = 'outputs/nodes/names/'
+        self.node_names = 'outputs/nodes/labels/'
 
         image = cv2.imread(image_path, 0)
         self.image = image
@@ -62,6 +62,15 @@ class Import_Graph:
         # plot, save graph
         nx.draw(graph)
         plt.savefig("outputs/detected_graph.jpg")
+
+        return graph
+
+    # RGB to Gray
+    def grayify(self, image):
+        # save grayscale image
+        if (len(image.shape)==3):
+            image = cv2.cvtColor(np.float32(image), cv2.COLOR_BGR2GRAY)
+        return image
 
     # https://www.geeksforgeeks.org/text-detection-and-extraction-using-opencv-and-ocr/
     # read node name inside all nodes
@@ -141,6 +150,39 @@ class Import_Graph:
         G = nodes_text_dict.values()
         return G, nodes_text_dict
 
+    # crop nodes from graph
+    def crop_nodes(self, circles):
+        nodes_paths_dict = {}
+
+        for (x, y, r) in circles:
+
+            # bottom left
+            x0 = x - r
+            y0 = y - r
+
+            # top right
+            x1 = x + r
+            y1 = y + r
+
+            img = cv2.imread(self.image_path)
+            crop_img = img[y0:y1, x0:x1]
+
+            node_name = "{0}_{1}_{2}".format(x, y, r)
+            node_output_path = "outputs/nodes/{0}.png".format(node_name)
+
+            # view node cropped
+            if (preview):
+                cv2.imshow(node_output_path, crop_img)
+                cv2.waitKey(0)
+
+            # save image
+            cv2.imwrite(node_output_path, crop_img)
+
+            # associate image of node (path name) and coordinates
+            nodes_paths_dict[node_name] = (x, y, r)
+
+        return nodes_paths_dict
+
     # https://www.pyimagesearch.com/2014/07/21/detecting-circles-images-using-opencv-hough-circles/
     # find nodes in graph
     def find_nodes(self):
@@ -181,46 +223,6 @@ class Import_Graph:
                 cv2.waitKey(0)
 
         return circles
-
-    # crop nodes from graph
-    def crop_nodes(self, circles):
-        nodes_paths_dict = {}
-
-        for (x, y, r) in circles:
-
-            # bottom left
-            x0 = x - r
-            y0 = y - r
-
-            # top right
-            x1 = x + r
-            y1 = y + r
-
-            img = cv2.imread(self.image_path)
-            crop_img = img[y0:y1, x0:x1]
-
-            node_name = "{0}_{1}_{2}".format(x, y, r)
-            node_output_path = "outputs/nodes/{0}.png".format(node_name)
-
-            # view node cropped
-            if (preview):
-                cv2.imshow(node_output_path, crop_img)
-                cv2.waitKey(0)
-
-            # save image
-            cv2.imwrite(node_output_path, crop_img)
-
-            # associate image of node (path name) and coordinates
-            nodes_paths_dict[node_name] = (x, y, r)
-
-        return nodes_paths_dict
-
-    # RGB to Gray
-    def grayify(self, image):
-        # save grayscale image
-        if (len(image.shape)==3):
-            image = cv2.cvtColor(np.float32(image), cv2.COLOR_BGR2GRAY)
-        return image
 
     # https://www.geeksforgeeks.org/line-detection-python-opencv-houghline-method/
     # find edges in graph
