@@ -6,8 +6,12 @@ import pytesseract
 import glob
 import re
 import networkx as nx
+
+import Tkinter as tk
+root = tk.Tk()
 import matplotlib.pyplot as plt
 
+import tkMessageBox
 ### Settings ###
 
 # True when debugging
@@ -186,43 +190,89 @@ class Import_Graph:
     # https://www.pyimagesearch.com/2014/07/21/detecting-circles-images-using-opencv-hough-circles/
     # find nodes in graph
     def find_nodes(self):
+        self.minRadius = 12
+        self.maxRadius = 30
 
-        gray = self.gray
-        output = gray.copy()
+        top = tk.Tk()
 
-        # TO-DO: Allow user to adjust params (up, down) till all circles selected
+        def preview():
+            gray = self.gray
+            output = gray.copy()
 
-        # detect circles in the image
-        circles = cv2.HoughCircles(gray,
-                                   cv2.HOUGH_GRADIENT,
-                                   1,
-                                   20,
-                                   param1=30,
-                                   param2=15,
-                                   minRadius=12,
-                                   maxRadius=30)
+            # detect circles in the image
+            circles = cv2.HoughCircles(gray,
+                                    cv2.HOUGH_GRADIENT,
+                                    1,
+                                    20,
+                                    param1=30,
+                                    param2=15,
+                                    minRadius=self.minRadius,
+                                    maxRadius=self.maxRadius)
 
-        # ensure at least some circles were found
-        if circles is not None:
+            # ensure at least some circles were found
+            if circles is not None:
 
-            # convert the (x, y) coordinates and radius of the circles to integers
-            circles = np.round(circles[0, :]).astype("int")
+                # convert the (x, y) coordinates and radius of the circles to integers
+                circles = np.round(circles[0, :]).astype("int")
 
-            # loop over the (x, y) coordinates and radius of the circles
-            for (x, y, r) in circles:
+                # loop over the (x, y) coordinates and radius of the circles
+                for (x, y, r) in circles:
 
-                # draw the circle in the output image
-                cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                    # draw the circle in the output image
+                    cv2.circle(output, (x, y), r, (0, 255, 0), 4)
 
-                # draw a rectangle corresponding to the center of the circle
-                # cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                # show the output image
+                if (preview):
+                    cv2.imshow("output", np.hstack([gray, output]))
+                    cv2.waitKey(0)
 
-            # show the output image
-            if (preview):
-                cv2.imshow("output", np.hstack([gray, output]))
-                cv2.waitKey(0)
+            self.circles = circles
 
-        return circles
+        def minRadius_adjust(change):
+            self.minRadius += change
+            print(self.minRadius)
+            preview()
+
+        def maxRadius_adjust(change):
+            self.maxRadius += change
+            print(self.maxRadius)
+            preview()
+
+        frame1 = tk.Frame(root, borderwidth=2, relief='ridge')
+        frame2 = tk.Frame(root, borderwidth=2, relief='ridge')
+        frame3 = tk.Frame(root, borderwidth=2, relief='ridge')
+
+        frame4 = tk.Frame(root, borderwidth=2, relief='ridge')
+        frame5 = tk.Frame(root, borderwidth=2, relief='ridge')
+        frame6 = tk.Frame(root, borderwidth=2, relief='ridge')
+
+        frame1.grid(column=0, row=0, sticky="nsew")
+        frame2.grid(column=0, row=1, sticky="nsew")
+        frame3.grid(column=0, row=2, sticky="nsew")
+
+        frame4.grid(column=1, row=0, sticky="nsew")
+        frame5.grid(column=1, row=1, sticky="nsew")
+        frame6.grid(column=1, row=2, sticky="nsew")
+
+        label1 = tk.Label(frame1, text="Min Radius: " + str(self.minRadius))
+        label4 = tk.Label(frame4, text="Max Radius: " + str(self.maxRadius))
+
+        button2 = tk.Button(frame2, text ="Min Radius +", command = minRadius_adjust(1))
+        button3 = tk.Button(frame3, text ="Min Radius -", command = minRadius_adjust(-1))
+        button5 = tk.Button(frame5, text ="Max Radius +", command = maxRadius_adjust(1))
+        button6 = tk.Button(frame6, text ="Max Radius -", command = maxRadius_adjust(-1))
+
+        label1.pack(fill='x')
+        label4.pack(fill='x')
+
+        button2.pack(fill='x')
+        button3.pack(fill='x')
+        button5.pack(fill='x')
+        button6.pack(fill='x')
+
+        top.mainloop()
+
+        return self.circles
 
     # https://www.geeksforgeeks.org/line-detection-python-opencv-houghline-method/
     # find edges in graph
