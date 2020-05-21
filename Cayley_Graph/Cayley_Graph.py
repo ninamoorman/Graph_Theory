@@ -1,5 +1,7 @@
-import networkx as nx
-import matplotlib.pyplot as plt
+# import networkx as nx
+# import matplotlib.pyplot as plt
+import random
+from igraph import *
 
 def group_operation(a, b): # make this generalized (input)
     # Z3xZ3
@@ -42,10 +44,13 @@ def Cayley_Graph(V, S, group_name):
 def Cayley_Sum_Graph(G, S):
     pass
 
-def show_graph(V, E, graph_type, group_name, S, labels):
+def show_graph_old(V, E, graph_type, group_name, S, labels):
     G = nx.Graph()
     G.add_edges_from(E)
     pos = nx.spring_layout(G)
+
+    # Generate a dict of positions
+    # pos = {i: (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)) for i in V}
 
     # nodes
     nx.draw_networkx_nodes(G,pos,
@@ -65,6 +70,18 @@ def show_graph(V, E, graph_type, group_name, S, labels):
     plt.title("Cayley {2}Graph of {0} given S = {1}".format(group_name, S, graph_type))
     plt.savefig("Plots/Cayley {2}Graph of {0} given S = {1}".format(group_name, S, graph_type))
     plt.show()
+
+def show_graph(V, E, graph_type, group_name, S, labels):
+    g = Graph()
+    g.add_vertices(V)
+    g.add_edges(E)
+    layout = g.layout("kk") # random_3d
+    plot(g, layout = layout)
+
+    # plt.axis('off')
+    # plt.title("Cayley {2}Graph of {0} given S = {1}".format(group_name, S, graph_type))
+    # plt.savefig("Plots/Cayley {2}Graph of {0} given S = {1}".format(group_name, S, graph_type))
+    # plt.show()
 
 def main(G, S, group_name):
     # print(G)
