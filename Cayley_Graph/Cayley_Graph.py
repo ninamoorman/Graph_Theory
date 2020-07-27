@@ -3,15 +3,6 @@
 import random
 from igraph import *
 
-def group_operation(a, b): # make this generalized (input)
-    # Z3xZ3
-    # ind_0 = (a[0] + b[0]) % 3
-    # ind_1 = (a[1] + b[1]) % 3
-    # return (ind_0, ind_1)
-
-    # 5Z
-    return (a+b)%5
-
 def cayley_condition(u, v, S):
     for s in S:
         if u == group_operation(s, v):
@@ -83,9 +74,30 @@ def show_graph(V, E, graph_type, group_name, S, labels):
     # plt.savefig("Plots/Cayley {2}Graph of {0} given S = {1}".format(group_name, S, graph_type))
     # plt.show()
 
-def main(G, S, group_name):
+def group_operation(a, b): # make this generalized (input)
+    # Z3xZ3
+    # ind_0 = (a[0] + b[0]) % 3
+    # ind_1 = (a[1] + b[1]) % 3
+    # return (ind_0, ind_1)
+
+    # 5Z
+    return (a+b)%5
+
+def getS(G):
+    # from elements of G & their combinations determine all possible generating sets using DYNAMIC PROGRAMMING
+    # use group operation to determine what S generates - if all of G? More? Less?
+    # make sure it's symmetric
+    pass
+
+def main(G, group_name):
+    # determine all possible S from G
+    getS(G)
+
+    S = {1, 4}
+
     # print(G)
     # print(S)
+
     Cayley_Graph(G, S, group_name)
     Cayley_Sum_Graph(G, S)
 
@@ -98,8 +110,9 @@ if __name__ == "__main__":
     #         G.append((i, j))
     # S = [(0, 1), (1, 0), (0, 2), (2, 0)]
 
+    # FINITE ABELIAN Group
+
     # 5Z
     G = range(5)
-    S = {1, 4}
 
-    main(G, S, "Z3xZ3")
+    main(G, "Z3xZ3")
