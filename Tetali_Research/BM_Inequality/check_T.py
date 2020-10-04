@@ -24,8 +24,22 @@ def get_group(n):
     group = list(group)
     return group
         
-def P1():
-    pass
+def P1(group, x, y):
+
+    for z in group:
+
+        LHS = addition(x, z)
+        RHS = addition(y, z)
+
+        T_LHS = apply_T(LHS, RHS)
+        T_RHS = apply_T(x, y)
+
+        z_check = T_LHS == T_RHS
+
+        if not z_check:
+            return False
+
+    return True
 
 def P2_prime():
     pass
@@ -34,11 +48,16 @@ def addition(g_1, g_2):
     g = []
 
     for i in range(len(g_1)):
-        g.append((g_1[i] + g_2[i]) % 2)
+        element = (g_1[i] + g_2[i]) % 2
+        g.append(element)
 
+    
     return g
 
 def apply_T(g_1, g_2):
+    g_1 = [*g_1]
+    g_2 = [*g_2]
+    
     # permute g_2 defined by 
     for i in range(len(g_1)):
         j = (i+1) % len(g_1)
@@ -57,15 +76,18 @@ def get_A_i(A_i, z):
     return A_result
 
 def subset_check(a, b):
-    A = set(a)
-    B = set(b)
-    return A.issubset(B)
-
+    # exist element in LHS not in RHS
+    for element in a:
+        if element not in b:
+            return True
+    return False
+    
 def intersection_check(a, b):
-    A = set(a)
-    B = set(b)
+    intersection = []
+    for element in a:
+        if element in b:
+            intersection.append(element)
 
-    intersection = A.intersection(B)
     return 0 == len(intersection)
 
 def checkT(group, x, y, A):
@@ -104,7 +126,11 @@ def main(n):
     y = group[2]
     A = [x, y]
 
-    P2_prime = checkT(group, x, y, A)
+    P2_prime_check = checkT(group, x, y, A)
+    print("P2': ", P2_prime_check)
+
+    P1_check = P1(group, x, y)
+    print("P1: ", P1_check)
 
 if __name__ == "__main__":
     n = 4
