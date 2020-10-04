@@ -55,18 +55,10 @@ def addition(g_1, g_2):
     return g
 
 def apply_T(g_1, g_2):
-    g_1 = [*g_1]
-    g_2 = [*g_2]
-    
-    # permute g_2 defined by 
+    g = []
     for i in range(len(g_1)):
-        j = (i+1) % len(g_1)
-
-        j_copy = g_2[j]
-        g_2[j] = g_2[i]
-        g_2[i] = j_copy
-
-    return g_2
+        element = g_1[i] * g_2[i]
+        g.append(element)
 
 def get_A_i(A_i, z):
     A_result = []
@@ -119,6 +111,21 @@ def checkT(group, x, y, A):
         if not(check_1 and check_2):
             return False
     return True
+
+# permutations grom g_1 applied to g_2
+def permutations_apply_T(g_1, g_2):
+    g_1 = [*g_1]
+    g_2 = [*g_2]
+    
+    # permute g_2 defined by 
+    for i in range(len(g_1)):
+        j = (i+1) % len(g_1)
+
+        j_copy = g_2[j]
+        g_2[j] = g_2[i]
+        g_2[i] = j_copy
+
+    return g_2
 
 def main(n):
     group = get_group(n)
