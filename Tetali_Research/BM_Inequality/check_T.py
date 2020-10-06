@@ -24,6 +24,7 @@ def get_group(n):
     group = list(group)
     return group
         
+# always breaks when mod 2
 def P1(group, x, y):
 
     for z in group:
@@ -32,17 +33,20 @@ def P1(group, x, y):
         RHS = addition(y, z)
 
         T_LHS = apply_T(LHS, RHS)
+        # print("T_LHS: ", T_LHS)
+
         T_RHS = apply_T(x, y)
+        # print("T RHS: ", T_RHS)
+        T_RHS = addition(T_RHS, z)
+        # print(T_RHS)
 
         z_check = T_LHS == T_RHS
 
         if not z_check:
+            print("\nT({0} + {1}, {2} + {1}) != T({0}, {2}) + {1}".format(x,z, y))
             return False
 
     return True
-
-def P2_prime():
-    pass
 
 def addition(g_1, g_2):
     g = []
@@ -54,11 +58,13 @@ def addition(g_1, g_2):
     
     return g
 
+# multiplication (and operator)
 def apply_T(g_1, g_2):
     g = []
     for i in range(len(g_1)):
         element = g_1[i] * g_2[i]
         g.append(element)
+    return g
 
 def get_A_i(A_i, z):
     A_result = []
@@ -82,7 +88,7 @@ def intersection_check(a, b):
 
     return 0 == len(intersection)
 
-def checkT(group, x, y, A):
+def P2_prime(group, x, y, A): # check T
     for z in group:
         LHS = []
         LHS.append(apply_T(x, addition(z, y)))
@@ -127,18 +133,34 @@ def permutations_apply_T(g_1, g_2):
 
     return g_2
 
+# multiplication (and operator)
+def multiplications_apply_T(g_1, g_2):
+    g = []
+    for i in range(len(g_1)):
+        element = g_1[i] * g_2[i]
+        g.append(element)
+    return g
+
+# or (max operator)
+def or_apply_T(g_1, g_2):
+    g = []
+    for i in range(len(g_1)):
+        element = max(g_1[i], g_2[i])
+        g.append(element)
+    return g
+
 def main(n):
     group = get_group(n)
     x = group[1]
     y = group[2]
     A = [x, y]
 
-    P2_prime_check = checkT(group, x, y, A)
+    P2_prime_check = P2_prime(group, x, y, A)
     print("P2': ", P2_prime_check)
 
     P1_check = P1(group, x, y)
     print("P1: ", P1_check)
 
 if __name__ == "__main__":
-    n = 4
+    n = 3
     main(n)
